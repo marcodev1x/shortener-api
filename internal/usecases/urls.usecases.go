@@ -56,7 +56,7 @@ func (u *UrlUsecase) FindUrlByHashedId(hashedId string) (*domain.Urls, error) {
 }
 
 func (u *UrlUsecase) CreateUrl(url string, expiresAt *time.Time) (bool, error) {
-	hashedDomain := helpers.GenerateHash(0)
+	hashedDomain := helpers.GenerateHash(0, url)
 
 	create, err := u.repository.CreateUrl(url, hashedDomain, expiresAt)
 

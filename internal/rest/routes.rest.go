@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"shortner-url/infra"
 	"shortner-url/internal"
 	"shortner-url/internal/middlewares"
@@ -12,7 +11,6 @@ import (
 )
 
 func UrlRoutes() *[]internal.RouteHandler {
-	fmt.Println(infra.DomainDatabase)
 	rest := NewUrlRest(usecases.NewUrlUseCase(mysql.NewUrlRepository(infra.DomainDatabase), usecases.NewRedisUsecase()))
 
 	return &[]internal.RouteHandler{

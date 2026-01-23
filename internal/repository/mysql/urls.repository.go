@@ -1,9 +1,7 @@
 package mysql
 
 import (
-	"fmt"
 	"shortner-url/internal/domain"
-	"shortner-url/internal/helpers"
 	"time"
 
 	"gorm.io/gorm"
@@ -40,23 +38,21 @@ func (r *UrlRepository) CreateUrl(url string, hashedDomain string, expiresAt *ti
 				ExpiresAt:    expiresAt,
 			}).Scan(&obj).
 				Error; err != nil {
+				tx.Rollback()
 				return err
 			}
 
-			finalDomain := helpers.GenerateHash(obj.Id) + hashedDomain
-
 			if err := tx.Model(&domain.Urls{}).
 				Where("id = ?", obj.Id).
-				Update("hashed_domain", finalDomain).
+				Update("hashed_domain", hashedDomain).
 				Scan(&createdUrl).
 				Error; err != nil {
+				tx.Rollback()
 				return err
 			}
 
 			return nil
 		})
-
-	fmt.Println(createdUrl)
 
 	return &createdUrl, err
 }

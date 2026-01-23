@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"shortner-url/internal"
 	"shortner-url/internal/structs"
 	"shortner-url/internal/usecases"
@@ -31,7 +32,9 @@ func (r *UrlRest) FindUrlByHashedId(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, url)
+	c.JSON(200, gin.H{
+		"url": url.ShortenedUrl,
+	})
 
 }
 
@@ -44,6 +47,8 @@ func (r *UrlRest) CreateUrl(c *gin.Context) {
 	}
 
 	created, err := r.usecase.CreateUrl(request.Url, request.ExpiresAt)
+
+	fmt.Println(err, created)
 
 	if err != nil {
 		c.Error(err)
