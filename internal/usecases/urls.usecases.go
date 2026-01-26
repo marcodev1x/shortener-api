@@ -18,8 +18,18 @@ func NewUrlUseCase(repository *mysql.UrlRepository, redis *RedisUsecase) *UrlUse
 	return &UrlUsecase{repository, redis}
 }
 
-func (u *UrlUsecase) FindUrlByHashedId(hashedId string) (*domain.Urls, error) {
-	cached, err := u.cache.Get(hashedId)
+func (u *UrlUsecase) UpdateUrl(url *domain.Urls) error {
+	err := u.repository.UpdateUrl(url)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *UrlUsecase) FindUrlByHashedId(hashedId string, ref string) (*domain.Urls, error) {
+	cached, err := u.cache.Get(hashedId + ref)
 
 	if err == nil {
 		var url domain.Urls
@@ -28,10 +38,15 @@ func (u *UrlUsecase) FindUrlByHashedId(hashedId string) (*domain.Urls, error) {
 			return nil, err
 		}
 
+		u.UpdateUrl(&domain.Urls{
+			Id:            url.Id,
+			CountedClicks: url.CountedClicks + 1,
+		})
+
 		return &url, nil
 	}
 
-	url, err := u.repository.FindUrlByHashedId(hashedId)
+	url, err := u.repository.FindUrlByHashedId(hashedId, ref)
 
 	if err != nil {
 		return nil, err
@@ -40,6 +55,11 @@ func (u *UrlUsecase) FindUrlByHashedId(hashedId string) (*domain.Urls, error) {
 	if url == nil {
 		return nil, internal.NewAPIError("Url not found", 404, 100)
 	}
+
+	u.UpdateUrl(&domain.Urls{
+		Id:            url.Id,
+		CountedClicks: url.CountedClicks + 1,
+	})
 
 	bytes, err := json.Marshal(url)
 
@@ -55,10 +75,10 @@ func (u *UrlUsecase) FindUrlByHashedId(hashedId string) (*domain.Urls, error) {
 	return url, nil
 }
 
-func (u *UrlUsecase) CreateUrl(url string, expiresAt *time.Time) (bool, error) {
+func (u *UrlUsecase) CreateUrl(url string, expiresAt *time.Time, ref string) (bool, error) {
 	hashedDomain := helpers.GenerateHash(0, url)
 
-	create, err := u.repository.CreateUrl(url, hashedDomain, expiresAt)
+	create, err := u.repository.CreateUrl(url, hashedDomain, expiresAt, ref)
 
 	if err != nil {
 		return false, err

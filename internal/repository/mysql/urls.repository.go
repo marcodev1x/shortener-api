@@ -15,18 +15,27 @@ func NewUrlRepository(db *gorm.DB) *UrlRepository {
 	return &UrlRepository{db}
 }
 
-func (r *UrlRepository) FindUrlByHashedId(hashedId string) (*domain.Urls, error) {
+func (r *UrlRepository) UpdateUrl(url *domain.Urls) error {
+	return r.db.
+		Model(&domain.Urls{}).
+		Where("id = ?", url.Id).
+		Updates(url).
+		Error
+}
+
+func (r *UrlRepository) FindUrlByHashedId(hashedId string, ref string) (*domain.Urls, error) {
 	var url domain.Urls
 
 	err := r.db.
 		Where("hashed_domain = ?", hashedId).
+		Where("reference = ?", ref).
 		Find(&url).
 		Error
 
 	return &url, err
 }
 
-func (r *UrlRepository) CreateUrl(url string, hashedDomain string, expiresAt *time.Time) (*domain.Urls, error) {
+func (r *UrlRepository) CreateUrl(url string, hashedDomain string, expiresAt *time.Time, ref string) (*domain.Urls, error) {
 	var createdUrl domain.Urls
 
 	err := r.db.
@@ -36,6 +45,7 @@ func (r *UrlRepository) CreateUrl(url string, hashedDomain string, expiresAt *ti
 			if err := tx.Create(&domain.Urls{
 				ShortenedUrl: url,
 				ExpiresAt:    expiresAt,
+				Reference:    ref,
 			}).Scan(&obj).
 				Error; err != nil {
 				tx.Rollback()

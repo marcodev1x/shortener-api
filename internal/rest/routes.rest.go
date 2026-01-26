@@ -15,10 +15,13 @@ func UrlRoutes() *[]internal.RouteHandler {
 
 	return &[]internal.RouteHandler{
 		{
-			Path:        "/url",
-			Handler:     rest.FindUrlByHashedId,
-			Method:      internal.GET,
-			Middlewares: []gin.HandlerFunc{middlewares.Interceptors.ErrorHandler()},
+			Path:    "/url",
+			Handler: rest.FindUrlByHashedId,
+			Method:  internal.GET,
+			Middlewares: []gin.HandlerFunc{
+				middlewares.Interceptors.ErrorHandler(),
+				middlewares.Interceptors.RateLimiter(1, 1),
+			},
 		},
 		{
 			Path:        "/create-url",

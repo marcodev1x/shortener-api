@@ -9,6 +9,7 @@ type Urls struct {
 	CreatedAt     time.Time  `json:"created_at"`
 	ExpiresAt     *time.Time `json:"expires_at"`
 	CountedClicks int        `json:"counted_clicks"`
+	Reference     string     `json:"reference"`
 }
 
 func (u *Urls) TableName() string {
